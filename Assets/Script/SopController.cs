@@ -19,13 +19,27 @@ public class SopController : Singleton<SopController>
         List<Sop> fetchedSops = DatabaseManger.Instance.FetchSOPData();
         foreach (Sop fetchedSop in fetchedSops)
         {
-            if (fetchedSop.GetIsActive())
+            SopData fetchedSopData = fetchedSop.GetSopData();
+
+            // Check if the SOPData with the same title already exists in _activeSopList.
+            bool containsSopData = false;
+            foreach (SopData activeSopData in _activeSopList)
             {
-                if (!_activeSopList.Contains(fetchedSop.GetSopData()))
-                    _activeSopList.Add(fetchedSop.GetSopData());
+                if (activeSopData.GetTitle() == fetchedSopData.GetTitle())
+                {
+                    containsSopData = true;
+                    if(!fetchedSop.GetIsActive())
+                        _activeSopList.Remove(activeSopData);
+                    
+                    break;
+                }
             }
-            else if (_activeSopList.Contains(fetchedSop.GetSopData()))
-                _activeSopList.Remove(fetchedSop.GetSopData());
+
+            if (fetchedSop.GetIsActive() && !containsSopData)
+            {
+                _activeSopList.Add(fetchedSopData);
+            }
+
         }
         
         UiManger.Instance.CreateButtons(_activeSopList);
